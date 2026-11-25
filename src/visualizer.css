@@ -1,8 +1,7 @@
-.fa {
+.fas {
     display: inline-block;
     font-family: 'Font Awesome 5 Free';
     font-weight: 900;
-    font-size: inherit;
     text-rendering: auto;
     -webkit-font-smoothing: antialiased;
 }

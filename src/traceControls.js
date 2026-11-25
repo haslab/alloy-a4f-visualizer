@@ -17,7 +17,7 @@ export function createTraceControls(container, {
     previous.id = 'prevTrace'
     previous.className = 'cbutton'
     previous.setAttribute('aria-label', previousLabel)
-    previous.innerHTML = '<i class="cbutton__icon fa fa-fw fa-arrow-left" aria-hidden="true"></i>'
+    previous.innerHTML = '<i class="cbutton__icon fas fa-fw fa-arrow-left" aria-hidden="true"></i>'
 
     const next = document.createElement('button')
     next.type = 'button'
@@ -26,7 +26,7 @@ export function createTraceControls(container, {
     next.setAttribute('aria-label', nextLabel)
 
     const nextIcon = document.createElement('i')
-    nextIcon.className = 'cbutton__icon fa fa-fw fa-arrow-right'
+    nextIcon.className = 'cbutton__icon fas fa-fw fa-arrow-right'
     nextIcon.setAttribute('aria-hidden', 'true')
     next.appendChild(nextIcon)
 
@@ -45,7 +45,7 @@ export function createTraceControls(container, {
         next.hidden = !hasState
         current.hidden = !hasState
         current.textContent = hasState ? index : ''
-        nextIcon.className = `cbutton__icon fa fa-fw ${controller.hasNext() && index === controller.length() - 1 ? 'fa-undo' : 'fa-arrow-right'}`
+        nextIcon.className = `cbutton__icon fas fa-fw ${controller.hasNext() && index === controller.length() - 1 ? 'fa-undo' : 'fa-arrow-right'}`
     }
 
     function navigate(action) {
