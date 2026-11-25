@@ -21,3 +21,141 @@
 .fa-undo::before { content: '\f0e2'; }
 .fa-step-backward::before { content: '\f048'; }
 .fa-step-forward::before { content: '\f051'; }
+
+/* Host layout rules must not override the component's hidden state. */
+.frame-navigation[hidden] { display: none !important; }
+
+/* Default canvas presentation. Hosts may override dimensions to fit their UI. */
+.visualizer-canvas {
+    position: relative;
+    width: 100%;
+    height: 400px;
+    border: 1px solid #333;
+    box-sizing: border-box;
+}
+.visualizer-graph { width: 100%; height: 100%; }
+
+/* Alloy context menu. */
+#optionsMenu { margin: 0; width: auto; height: auto; }
+#cssmenu, #cssmenu ul, #cssmenu ul li, #cssmenu ul li a {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    list-style: none;
+    line-height: 1;
+    display: block;
+    position: relative;
+    box-sizing: border-box;
+}
+#cssmenu { width: 300px; font-family: inherit; color: #333; }
+#cssmenu ul { border-bottom: 1px solid grey; }
+#cssmenu ul ul { display: none; }
+#cssmenu > ul > li.open > ul { display: block; }
+#cssmenu > ul > li > a {
+    padding: 12px 22px;
+    cursor: pointer;
+    z-index: 2;
+    font-size: 16px;
+    text-decoration: none;
+    color: #fff;
+    background: rgba(58, 55, 55, .88);
+    border-color: transparent;
+    transition: color .2s ease;
+}
+#cssmenu > ul > li > a:hover { color: #d8f3f0; }
+#cssmenu ul > li.has-sub > a:after,
+#cssmenu ul > li.has-sub > a:before {
+    position: absolute;
+    z-index: 5;
+    display: block;
+    content: "";
+    background: #fff;
+    transition: all .1s ease-out;
+}
+#cssmenu ul > li.has-sub > a:after { right: 26px; top: 19px; height: 10px; width: 2px; }
+#cssmenu ul > li.has-sub > a:before { right: 22px; top: 23px; width: 10px; height: 2px; }
+#cssmenu ul > li.has-sub.open > a:after,
+#cssmenu ul > li.has-sub.open > a:before { transform: rotate(45deg); }
+#cssmenu ul ul li a {
+    padding: 14px 22px;
+    cursor: pointer;
+    z-index: 2;
+    font-size: 14px;
+    text-decoration: none;
+    color: #ddd;
+    background: #49505a;
+    transition: color .2s ease;
+}
+#cssmenu ul ul li a:hover { color: #fff; }
+#cssmenu ul ul li { padding: 6px 12px; background: #49505a; }
+#cssmenu select {
+    width: 100%;
+    background-color: rgba(142, 140, 140, .88);
+    padding-left: 16px;
+}
+
+/* Trace navigation and projection controls. */
+#traceControls { position: absolute; inset: 0; z-index: 10; pointer-events: none; }
+#traceControls > button { pointer-events: auto; }
+#prevTrace, #nextTrace {
+    position: absolute;
+    top: 50%;
+    z-index: 10;
+    margin: 0;
+    padding: 0;
+    font-size: 48px;
+    transform: translateY(-50%);
+}
+#prevTrace { left: 0; padding-bottom: 0; }
+#nextTrace { right: 0; }
+#currentTrace {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    margin: 0;
+    padding: 10px;
+    color: #97adab;
+    font-size: 56px;
+    line-height: 1;
+}
+#prevTrace, #nextTrace, .frame-navigation .cbutton {
+    color: #009933;
+    border: 0;
+    background: none;
+    -webkit-tap-highlight-color: transparent;
+}
+#prevTrace[disabled], #nextTrace[disabled], .frame-navigation .cbutton[disabled] {
+    color: #6d8a88 !important;
+}
+.frame-navigation {
+    position: absolute;
+    bottom: 10px;
+    left: 50%;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: .45rem .8rem;
+    max-width: calc(100% - 1rem);
+    transform: translateX(-50%);
+}
+.frame-navigation .cbutton { margin: 0; padding: 0; }
+.projection-type-control {
+    display: inline-flex;
+    align-items: center;
+    gap: .35rem;
+    padding: .15rem .45rem;
+    border-radius: .35rem;
+    background: rgba(142, 140, 140, .88);
+    color: #222;
+}
+.projection-type-label { font-weight: 600; }
+.projection-focused-atom { min-width: 5ch; text-align: center; }
+.projection-atom-button { font-size: 1.2em; }
+.changeAtomShapePicker, .changeLayoutPicker,
+.changeAtomColorPicker, .changeAtomBorderPicker {
+    width: 100%;
+    background-color: rgba(142, 140, 140, .88);
+    padding-left: 16px;
+}

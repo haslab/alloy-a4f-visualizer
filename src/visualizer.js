@@ -9,6 +9,8 @@ import { createTraceController } from './traceController.js'
 import { createTraceControls } from './traceControls.js'
 import { createProjectionController } from './projectionController.js'
 import { createProjectionControls } from './projectionControls.js'
+import { isProjectableType } from './projectionEligibility.js'
+import { projectInstance } from './instanceProjection.js'
 import { instanceToGraph } from './graphModel.js'
 import { createVisualizerState } from './visualizerState.js'
 import { serializePreferences } from './preferences.js'
@@ -37,6 +39,9 @@ export function createVisualizer(container, {
 } = {}) {
     if (!container) throw new TypeError('A visualizer container is required')
 
+    container.classList.add('visualizer-graph')
+    if (container.parentElement) container.parentElement.classList.add('visualizer-canvas')
+
     const themeState = createThemeState({ onChange: refreshGraph })
     const unsubscribeTheme = onThemeChange || onPreferencesChange
         ? themeState.subscribe(value => {
@@ -56,12 +61,18 @@ export function createVisualizer(container, {
         visualizerState.setCurrentState(index)
         // The full trace is laid out when its document is installed. State
         // navigation reuses those positions and the current viewport.
-        if (!settingDocument) render(state, { layout: false })
+        if (!settingDocument) render(visualizerState.projectedInstance(), { layout: false })
         if (onStateChange) onStateChange(state, index)
     } })
     const projectionController = createProjectionController({ onChange: value => {
         visualizerState.setProjection(value)
-        if (!settingDocument) render(visualizerState.projectedInstance(), { layout: true })
+        if (!settingDocument) {
+            // Position restoration can move projected atoms after Cytoscape's
+            // layout fit. Fit again after the layout completes so the reduced
+            // graph and its restored coordinates are visible in the canvas.
+            fitAfterLayout = true
+            render(visualizerState.projectedInstance(), { layout: true })
+        }
         if (projectionControls) projectionControls.update()
         if (onProjectionChange) onProjectionChange(value)
     } })
@@ -70,6 +81,7 @@ export function createVisualizer(container, {
     let currentAppearance = appearance === 'dark' ? 'dark' : 'light'
     let fitAfterLayout = false
     let documentGeneration = 0
+    let layoutGeneration = 0
     let destroyed = false
 
     const contextMenu = createContextMenu({
@@ -88,7 +100,8 @@ export function createVisualizer(container, {
             applyCurrentLayout({ restorePositions: false })
         },
         onRefresh: refreshGraph,
-        canProject: type => atomsForType(type).length > 0
+        canProject: type => isProjectableType(visualizerState.currentInstance(), type)
+            && atomsForType(type).length > 0
     })
 
     bindGraphInteractions(graph, {
@@ -145,19 +158,21 @@ export function createVisualizer(container, {
 
     function addProjection(type) {
         const atoms = atomsForType(type)
-        if (atoms.length > 0) projectionController.addType(type, atoms[0])
+        if (isProjectableType(visualizerState.currentInstance(), type) && atoms.length > 0) {
+            projectionController.addType(type, atoms[0])
+        }
     }
 
     function resetProjection() {
         projectionController.clear()
     }
 
-    function fitVisibleGraph(generation) {
+    function fitVisibleGraph(generation, layoutRun) {
         // Cytoscape can emit layoutstop before the host has finished applying
         // the canvas's new dimensions. Defer one frame, refresh renderer size,
         // then fit so the transform uses the actual viewport dimensions.
         requestAnimationFrame(() => {
-            if (destroyed || generation !== documentGeneration) return
+            if (destroyed || generation !== documentGeneration || layoutRun !== layoutGeneration) return
             graph.resize()
             const visibleElements = graph.elements(':visible')
             if (visibleElements.length > 0) graph.fit(visibleElements, 20)
@@ -165,9 +180,12 @@ export function createVisualizer(container, {
     }
 
     function applyCurrentLayout({ restorePositions = true } = {}) {
-        const currentElements = graph.elements()
         const document = visualizerState.currentDocument()
-        const states = document && document.loop >= 0 ? document.states : [visualizerState.currentInstance()]
+        const isTrace = document && document.loop >= 0
+        const assignments = projectionController.snapshot().assignments
+        const states = isTrace
+            ? document.states.map(state => projectInstance(state, assignments))
+            : [visualizerState.projectedInstance()]
         const stateGraphs = states.filter(Boolean).map(instanceToGraph)
 
         // Alloy4Fun computes trace layouts using the union of every state's
@@ -188,21 +206,42 @@ export function createVisualizer(container, {
         }
 
         const layoutElements = graph.elements().filter((index, element) => element.visible())
-        if (fitAfterLayout) {
-            fitAfterLayout = false
-            const generation = documentGeneration
-            graph.one('layoutstop', () => fitVisibleGraph(generation))
+        const shouldFit = fitAfterLayout
+        fitAfterLayout = false
+        const generation = documentGeneration
+        const layoutRun = ++layoutGeneration
+
+        if (isTrace) {
+            if (layoutElements.length === 0) {
+                const currentGraph = instanceToGraph(visualizerState.projectedInstance())
+                themeState.setHierarchy(hierarchyFor(currentGraph))
+                graph.style(createCytoscapeStyle(themeState, themeState, currentAppearance))
+                replaceGraph(graph, currentGraph)
+                return
+            }
+            // Keep the union of trace atoms in the renderer until layoutstop.
+            // Fitting after removing future-state atoms would fit only the
+            // current state's graph and can leave later atoms off-canvas.
+            graph.one('layoutstop', () => {
+                requestAnimationFrame(() => {
+                    if (destroyed || generation !== documentGeneration || layoutRun !== layoutGeneration) return
+                    graph.resize()
+                    positionStore.capture(layoutElements)
+                    if (shouldFit && layoutElements.length > 0) graph.fit(layoutElements, 20)
+
+                    const currentGraph = instanceToGraph(visualizerState.projectedInstance())
+                    themeState.setHierarchy(hierarchyFor(currentGraph))
+                    graph.style(createCytoscapeStyle(themeState, themeState, currentAppearance))
+                    replaceGraph(graph, currentGraph)
+                    positionStore.apply(graph)
+                })
+            })
+        } else if (shouldFit) {
+            graph.one('layoutstop', () => fitVisibleGraph(generation, layoutRun))
         }
         applyLayout(layoutElements, layouts[currentLayout] || layouts.breadthfirst,
             restorePositions ? positionStore : undefined)
-        positionStore.capture(layoutElements)
-
-        if (document && document.loop >= 0) {
-            graph.remove(graph.elements().subtract(currentElements))
-            const currentGraph = instanceToGraph(visualizerState.currentInstance())
-            themeState.setHierarchy(hierarchyFor(currentGraph))
-            graph.style(createCytoscapeStyle(themeState, themeState, currentAppearance))
-        }
+        if (!isTrace) positionStore.capture(layoutElements)
     }
 
     function render(instance = visualizerState.projectedInstance(), { layout = true, capturePositions = true } = {}) {
@@ -232,7 +271,9 @@ export function createVisualizer(container, {
             const assignments = {}
             Object.keys(projectionController.snapshot().assignments).forEach(type => {
                 const atoms = atomsForType(type)
-                if (atoms.length > 0) assignments[type] = atoms[0]
+                if (isProjectableType(visualizerState.currentInstance(), type) && atoms.length > 0) {
+                    assignments[type] = atoms[0]
+                }
             })
             projectionController.setProjection(assignments)
         } finally {
