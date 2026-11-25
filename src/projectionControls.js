@@ -1,71 +1,55 @@
 /**
- * Projection-frame controls for the currently assigned projected type.
- * The controller owns focused atoms; this view only reports and changes them.
+ * Per-type projection navigation. Each projected type owns an independent
+ * focused-atom control; the controller remains the source of assignments.
  */
 export function createProjectionControls(container, { controller, atomsForType } = {}) {
     if (!container || !controller || typeof atomsForType !== 'function') {
         throw new TypeError('A container, projection controller, and atom lookup are required')
     }
 
-    const previous = document.createElement('button')
-    previous.type = 'button'
-    previous.id = 'previousFrame'
-    previous.className = 'cbutton'
-    previous.setAttribute('aria-label', 'Previous projection atom')
-    previous.innerHTML = '<i class="cbutton__icon fa fa-fw fa-step-backward" aria-hidden="true"></i>'
-
-    const target = document.createElement('select')
-    target.className = 'framePickerTarget'
-    target.setAttribute('aria-label', 'Projected type')
-
-    const current = document.createElement('p')
-    current.className = 'current-frame'
-    current.setAttribute('aria-live', 'polite')
-
-    const next = document.createElement('button')
-    next.type = 'button'
-    next.id = 'nextFrame'
-    next.className = 'cbutton'
-    next.setAttribute('aria-label', 'Next projection atom')
-    next.innerHTML = '<i class="cbutton__icon fa fa-fw fa-step-forward" aria-hidden="true"></i>'
-
     container.classList.add('frame-navigation', 'row')
-    container.replaceChildren(previous, target, current, next)
 
     function render() {
         const assignments = controller.snapshot().assignments
         const types = Object.keys(assignments)
-        const selectedType = types.includes(target.value) ? target.value : types[0]
-        target.replaceChildren(...types.map(type => {
-            const option = document.createElement('option')
-            option.value = type
-            option.textContent = type
-            option.selected = type === selectedType
-            return option
+        container.hidden = types.length === 0
+        container.replaceChildren(...types.map(type => {
+            const group = document.createElement('div')
+            group.className = 'projection-type-control'
+            group.setAttribute('role', 'group')
+            group.setAttribute('aria-label', `Projection for ${type}`)
+
+            const label = document.createElement('span')
+            label.className = 'projection-type-label'
+            label.textContent = type
+
+            const atoms = atomsForType(type)
+            const index = atoms.indexOf(assignments[type])
+            const previous = document.createElement('button')
+            previous.type = 'button'
+            previous.className = 'cbutton projection-atom-button'
+            previous.setAttribute('aria-label', `Previous ${type} atom`)
+            previous.innerHTML = '<i class="cbutton__icon fa fa-fw fa-step-backward" aria-hidden="true"></i>'
+            previous.disabled = index <= 0
+            previous.addEventListener('click', () => controller.selectPrevious(type, atomsForType(type)))
+
+            const atom = document.createElement('span')
+            atom.className = 'projection-focused-atom'
+            atom.setAttribute('aria-live', 'polite')
+            atom.textContent = assignments[type]
+
+            const next = document.createElement('button')
+            next.type = 'button'
+            next.className = 'cbutton projection-atom-button'
+            next.setAttribute('aria-label', `Next ${type} atom`)
+            next.innerHTML = '<i class="cbutton__icon fa fa-fw fa-step-forward" aria-hidden="true"></i>'
+            next.disabled = index < 0 || index >= atoms.length - 1
+            next.addEventListener('click', () => controller.selectNext(type, atomsForType(type)))
+
+            group.append(label, previous, atom, next)
+            return group
         }))
-        const visible = types.length > 0
-        container.hidden = !visible
-        if (!visible) {
-            current.textContent = ''
-            previous.disabled = true
-            next.disabled = true
-            return
-        }
-
-        const atoms = atomsForType(selectedType)
-        const index = atoms.indexOf(assignments[selectedType])
-        current.textContent = types.map(type => `${type}${atomsForType(type).indexOf(assignments[type])}`).join(',')
-        previous.disabled = index <= 0
-        next.disabled = index < 0 || index >= atoms.length - 1
     }
-
-    target.addEventListener('change', render)
-    previous.addEventListener('click', () => {
-        controller.selectPrevious(target.value, atomsForType(target.value))
-    })
-    next.addEventListener('click', () => {
-        controller.selectNext(target.value, atomsForType(target.value))
-    })
 
     const unsubscribe = controller.subscribe(render)
     render()

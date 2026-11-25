@@ -10,14 +10,14 @@
   "states": [
     {
       "types": [
-        {"name": "Node", "parents": ["univ"], "atoms": ["Node$0"]}
+        {"name": "Node", "parents": ["univ"], "isVar": true, "atoms": ["Node$0"]}
       ],
       "sets": [],
       "rels": []
     },
     {
       "types": [
-        {"name": "Node", "parents": ["univ"], "atoms": ["Node$0", "Node$1"]}
+        {"name": "Node", "parents": ["univ"], "isVar": true, "atoms": ["Node$0", "Node$1"]}
       ],
       "sets": [],
       "rels": [
@@ -26,7 +26,7 @@
     },
     {
       "types": [
-        {"name": "Node", "parents": ["univ"], "atoms": ["Node$0"]}
+        {"name": "Node", "parents": ["univ"], "isVar": true, "atoms": ["Node$0"]}
       ],
       "sets": [],
       "rels": []

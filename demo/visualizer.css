@@ -122,18 +122,27 @@
 .frame-navigation {
     position: absolute;
     bottom: 10px;
-    left: 45%;
+    left: 50%;
     z-index: 10;
     display: flex;
     align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: .45rem .8rem;
+    max-width: calc(100% - 1rem);
+    transform: translateX(-50%);
 }
-.framePickerTarget { height: 28px; position: relative; top: 10px; }
-.framePickerTarget, .framePickerTarget > option {
-    width: 100%;
-    color: #333;
-    text-align: center;
+.frame-navigation .cbutton { margin: 0; }
+.projection-type-control {
+    display: inline-flex;
+    align-items: center;
+    gap: .35rem;
+    padding: .15rem .45rem;
+    border-radius: .35rem;
     background: rgba(142, 140, 140, .88);
-    border: transparent;
+    color: #222;
 }
-.current-frame { margin-top: 4px; padding: 10px; }
+.projection-type-label { font-weight: 600; }
+.projection-focused-atom { min-width: 5ch; text-align: center; }
+.projection-atom-button { font-size: 1.2em; }
 .hidden { display: none !important; }

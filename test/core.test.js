@@ -1,6 +1,8 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
+import { readFileSync } from 'node:fs'
 import { serializePreferences } from '../src/preferences.js'
+import { isProjectableType } from '../src/projectionEligibility.js'
 import {
     instanceToGraph,
     relationLabel,
@@ -137,6 +139,40 @@ describe('Alloy visualizer core', function() {
         assert.deepEqual(controller.snapshot(), { assignments: { B: 'B$1' } })
         assert.deepEqual(requests, [{ assignments: { B: 'B$1' } }])
         assert.equal(changes.length, 5)
+    })
+
+    it('allows projection only for top-level non-variable signatures', function() {
+        const instance = {
+            types: [
+                { name: 'Person', parent: 'univ', atoms: ['Person0'] },
+                { name: 'State', parent: 'univ', isVar: true, atoms: ['State0'] },
+                { name: 'Student', parent: 'Person', atoms: ['Person0'] }
+            ]
+        }
+        assert.equal(isProjectableType(instance, 'Person'), true)
+        assert.equal(isProjectableType(instance, 'State'), false)
+        assert.equal(isProjectableType(instance, 'Student'), false)
+        assert.equal(isProjectableType(instance, 'Missing'), false)
+    })
+
+    it('does not offer projection for the mutable Node signature in the trace demo', function() {
+        const document = JSON.parse(readFileSync(new URL('../demo/examples/trace.json', import.meta.url), 'utf8'))
+        for (const state of document.states) {
+            assert.equal(isProjectableType(normalizeInstance(state), 'Node'), false)
+        }
+    })
+
+    it('provides a trace demo that can project static types over a changing relation', function() {
+        const document = normalizeDocument(JSON.parse(readFileSync(
+            new URL('../demo/examples/projection-trace.json', import.meta.url), 'utf8')))
+        for (const state of document.states) {
+            assert.equal(isProjectableType(state, 'Person'), true)
+            assert.equal(isProjectableType(state, 'Room'), true)
+        }
+        const projected = document.states.map(state => projectInstance(state, { Person: 'Person$0' }))
+        assert.deepEqual(projected[0].sets, [{ name: 'visits', parents: ['Room'], atoms: ['Room$0'] }])
+        assert.deepEqual(projected[1].sets, [{ name: 'visits', parents: ['Room'], atoms: [] }])
+        assert.deepEqual(projected[2].sets, [{ name: 'visits', parents: ['Room'], atoms: ['Room$1'] }])
     })
 
     it('normalizes parents and preserves relation metadata', function() {
@@ -290,14 +326,52 @@ describe('Alloy visualizer core', function() {
         assert.deepEqual(projected.rels, [])
         assert.deepEqual(projected.sets, [
             { name: 'visits', parents: ['Room'], atoms: ['Room$0'] },
-            { name: 'knows', parents: ['Person'], atoms: ['Person$1'] }
         ])
 
         const otherProjection = projectInstance(source, { Person: 'Person$1' })
         assert.deepEqual(otherProjection.sets, [
-            { name: 'visits', parents: ['Room'], atoms: [] },
-            { name: 'knows', parents: ['Person'], atoms: ['Person$0'] }
+            { name: 'visits', parents: ['Room'], atoms: [] }
         ])
         assert.equal(source.rels[0].atoms.length, 1)
+    })
+
+    it('projects the first demo instance over Person to Room atoms in the visits subset', function() {
+        const document = JSON.parse(readFileSync(new URL('../demo/examples/instance.json', import.meta.url), 'utf8'))
+        const source = document.states[0]
+        const person = source.types.find(type => type.name === 'Person')
+        const projected = projectInstance(source, { Person: person.atoms[0] })
+        const graph = instanceToGraph(projected)
+
+        assert.deepEqual(projected.sets.find(set => set.name === 'visits'), {
+            name: 'visits',
+            atoms: ['Room$0'],
+            parents: ['Room']
+        })
+        assert.deepEqual(graph.nodes.map(node => node.data.id), ['Room$0'])
+        assert.deepEqual(graph.nodes[0].data.subsetSigs, ['visits:Room'])
+        assert.equal(nodeLabel(graph.nodes[0].data), 'Room$0\n(visits)\n')
+        assert.deepEqual(graph.edges, [])
+    })
+
+    it('projects every occurrence of a projected column and drops nullary relations', function() {
+        const source = {
+            types: [
+                { name: 'A', parents: ['univ'], atoms: ['A0', 'A1'] },
+                { name: 'B', parents: ['univ'], atoms: ['B0', 'B1'] },
+                { name: 'C', parents: ['univ'], atoms: ['C0'] }
+            ],
+            sets: [{ name: 'OnlyA', parents: ['A'], atoms: ['A0'] }],
+            rels: [
+                { name: 'r', types: ['A', 'B', 'C'], arity: 3, atoms: [['A0', 'B0', 'C0'], ['A1', 'B1', 'C0']] },
+                { name: 't', types: ['A', 'B'], arity: 2, atoms: [['A0', 'B0'], ['A1', 'B1']] },
+                { name: 's', types: ['A', 'A'], arity: 2, atoms: [['A0', 'A0'], ['A0', 'A1']] }
+            ]
+        }
+        const projected = projectInstance(source, { A: 'A0' })
+        assert.deepEqual(projected.types.map(type => type.name), ['B', 'C'])
+        assert.deepEqual(projected.rels.map(relation => relation.name), ['r'])
+        assert.deepEqual(projected.rels[0], { name: 'r', types: ['B', 'C'], arity: 2, atoms: [['B0', 'C0']] })
+        assert.deepEqual(projected.sets.map(set => set.name), ['t'])
+        assert.deepEqual(projected.sets[0], { name: 't', parents: ['B'], atoms: ['B0'] })
     })
 })

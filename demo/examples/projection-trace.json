@@ -1,0 +1,43 @@
+{
+  "schema": "alloy-trace",
+  "version": 1,
+  "scope": {
+    "bitwidth": 4,
+    "maxseq": 4,
+    "mintrace": 1,
+    "maxtrace": 3
+  },
+  "states": [
+    {
+      "types": [
+        { "name": "Person", "parents": ["univ"], "atoms": ["Person$0", "Person$1"] },
+        { "name": "Room", "parents": ["univ"], "atoms": ["Room$0", "Room$1"] }
+      ],
+      "sets": [],
+      "rels": [
+        { "name": "visits", "arity": 2, "types": ["Person", "Room"], "atoms": [["Person$0", "Room$0"]] }
+      ]
+    },
+    {
+      "types": [
+        { "name": "Person", "parents": ["univ"], "atoms": ["Person$0", "Person$1"] },
+        { "name": "Room", "parents": ["univ"], "atoms": ["Room$0", "Room$1"] }
+      ],
+      "sets": [],
+      "rels": [
+        { "name": "visits", "arity": 2, "types": ["Person", "Room"], "atoms": [["Person$1", "Room$1"]] }
+      ]
+    },
+    {
+      "types": [
+        { "name": "Person", "parents": ["univ"], "atoms": ["Person$0", "Person$1"] },
+        { "name": "Room", "parents": ["univ"], "atoms": ["Room$0", "Room$1"] }
+      ],
+      "sets": [],
+      "rels": [
+        { "name": "visits", "arity": 2, "types": ["Person", "Room"], "atoms": [["Person$0", "Room$1"]] }
+      ]
+    }
+  ],
+  "loop": 1
+}
