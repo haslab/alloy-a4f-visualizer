@@ -1,7 +1,7 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
-import { serializePreferences } from '../src/preferences.js'
+import { createInitialStateResolver, resolveInitialStateIndex, serializePreferences } from '../src/preferences.js'
 import { isProjectableType } from '../src/projectionEligibility.js'
 import {
     instanceToGraph,
@@ -240,6 +240,19 @@ describe('Alloy visualizer core', function() {
             ...settings,
             nodePositions: positions
         })
+    })
+
+    it('restores and bounds the initial trace state from legacy model preferences', function() {
+        const document = { states: ['state 0', 'state 1', 'state 2'], loop: 0 }
+        assert.equal(resolveInitialStateIndex(document, undefined, { currentState: 2 }), 2)
+        assert.equal(resolveInitialStateIndex(document, undefined, { currentState: 8 }), 2)
+        assert.equal(resolveInitialStateIndex(document, undefined, { currentState: -1 }), 0)
+        assert.equal(resolveInitialStateIndex(document, undefined, {}), 0)
+        assert.equal(resolveInitialStateIndex(document, 1, { currentState: 2 }), 1)
+
+        const resolveInitialState = createInitialStateResolver({ currentState: 2 })
+        assert.equal(resolveInitialState(document), 2)
+        assert.equal(resolveInitialState(document), 0)
     })
 
     it('loads and updates legacy relation settings keyed by bare field names', function() {

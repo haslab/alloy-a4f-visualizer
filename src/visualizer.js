@@ -13,7 +13,7 @@ import { isProjectableType } from './projectionEligibility.js'
 import { projectInstance } from './instanceProjection.js'
 import { instanceToGraph } from './graphModel.js'
 import { createVisualizerState } from './visualizerState.js'
-import { serializePreferences } from './preferences.js'
+import { createInitialStateResolver, serializePreferences } from './preferences.js'
 
 /**
  * Mounts the complete reusable visualizer canvas.
@@ -56,6 +56,7 @@ export function createVisualizer(container, {
     const visualizerState = createVisualizerState({ onChange })
     let settingDocument = false
     let hasDocument = false
+    const resolveInitialState = createInitialStateResolver(preferences)
     let projectionControls
     const traceController = createTraceController({ onChange: (state, index) => {
         visualizerState.setCurrentState(index)
@@ -255,9 +256,10 @@ export function createVisualizer(container, {
         else positionStore.apply(graph)
     }
 
-    function setDocument(nextDocument, initialIndex = 0) {
+    function setDocument(nextDocument, initialIndex) {
         const replacingDocument = hasDocument
         hasDocument = true
+        const selectedIndex = resolveInitialState(nextDocument, initialIndex)
         // A new instance/trace gets its own viewport transform after layout.
         // State changes inside the same trace use render() directly and keep
         // the current zoom and pan.
@@ -267,7 +269,7 @@ export function createVisualizer(container, {
         try {
             if (replacingDocument) positionStore.clear()
             visualizerState.setDocument(nextDocument)
-            traceController.setTrace(nextDocument, initialIndex)
+            traceController.setTrace(nextDocument, selectedIndex)
             const assignments = {}
             Object.keys(projectionController.snapshot().assignments).forEach(type => {
                 const atoms = atomsForType(type)
