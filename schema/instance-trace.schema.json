@@ -41,6 +41,7 @@
       "required": ["name", "parents", "atoms"],
       "properties": {
         "name": { "type": "string" },
+        "isVar": { "type": "boolean" },
         "parents": { "type": "array", "items": { "type": "string" } },
         "atoms": { "type": "array", "items": { "type": "string" } }
       },

@@ -16,7 +16,10 @@ export function normalizeInstance(instance = {}) {
 }
 
 function normalizeNode(node) {
-    return { ...node, parents: (node.parents || []).slice(), atoms: (node.atoms || []).slice() }
+    const parents = Array.isArray(node.parents)
+        ? node.parents
+        : (node.parent && node.parent !== 'null' ? [node.parent] : [])
+    return { ...node, parents: parents.slice(), atoms: (node.atoms || []).slice() }
 }
 
 /** Normalize the canonical instance/trace document. */

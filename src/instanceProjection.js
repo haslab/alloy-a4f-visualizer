@@ -1,82 +1,109 @@
 import { normalizeInstance } from './schema.js'
 
 /**
- * Applies projection assignments to one instance state.
+ * Apply Alloy-style static projection to one instance state.
  *
- * The source state is never mutated. Assignments map projected type names to
- * the atom selected for that type.
+ * Assignments map projected type names to their focused atom. Relation type
+ * metadata is used to remove projected columns, just as Alloy's StaticProjector
+ * projects the model before projecting its tuples.
  */
 export function projectInstance(instance, assignments = {}) {
     const source = normalizeInstance(instance)
-    const projectedTypes = new Set(Object.keys(assignments))
-    const projectedAtoms = new Set(Object.values(assignments))
-    const sets = source.sets
-        .filter(set => !projectedTypes.has(set.name))
-        .map(set => ({ ...set, atoms: set.atoms.filter(atom => !projectedAtoms.has(atom)) }))
-    const rels = []
+    const projected = new Map(Object.entries(assignments))
+    const removedTypes = new Set(projected.keys())
 
-    const result = {
-        types: source.types
-            .filter(type => !projectedTypes.has(type.name))
-            .map(type => ({ ...type, atoms: type.atoms.filter(atom => !projectedAtoms.has(atom)) })),
-        sets,
-        rels
+    // Projecting a type also removes all its subtypes from the model.
+    let changed = true
+    while (changed) {
+        changed = false
+        source.types.forEach(type => {
+            if (!removedTypes.has(type.name)
+                && (type.parents || []).some(parent => removedTypes.has(parent))) {
+                removedTypes.add(type.name)
+                changed = true
+            }
+        })
     }
 
-    source.rels.forEach(relation => {
-        const hasTypeMetadata = Array.isArray(relation.types)
-        let types = hasTypeMetadata ? relation.types.slice() : undefined
-        const originalArity = types ? types.length : undefined
-        let tuples = relation.atoms.map(tuple => tuple.slice())
-
-        if (types) {
-            const projectedTypeNames = new Set()
-            for (const [type, atom] of Object.entries(assignments)) {
-                const columns = types
-                    .map((columnType, index) => columnType === type ? index : -1)
-                    .filter(index => index >= 0)
-                if (columns.length === 0) continue
-
-                // A projected atom may occur in any column of the same
-                // projected type. For example, projecting Person onto P0
-                // keeps both P0->P1 and P1->P0.
-                tuples = tuples.filter(tuple => columns.some(index => tuple[index] === atom))
-                projectedTypeNames.add(type)
+    const typeByName = new Map(source.types.map(type => [type.name, type]))
+    const projectionRootFor = typeName => {
+        if (projected.has(typeName)) return typeName
+        let current = typeByName.get(typeName)
+        const seen = new Set()
+        while (current && !seen.has(current.name)) {
+            seen.add(current.name)
+            const projectedParent = (current.parents || []).find(parent => removedTypes.has(parent))
+            if (projectedParent) {
+                if (projected.has(projectedParent)) return projectedParent
+                current = typeByName.get(projectedParent)
+            } else {
+                const parent = (current.parents || []).find(name => typeByName.has(name))
+                current = parent ? typeByName.get(parent) : undefined
             }
+        }
+        return undefined
+    }
 
-            const remainingTypes = types.slice()
-            projectedTypeNames.forEach(type => {
-                const index = remainingTypes.indexOf(type)
-                if (index >= 0) remainingTypes.splice(index, 1)
-            })
-            tuples = tuples.map(tuple => {
-                const result = tuple.slice()
-                const remove = [...projectedTypeNames]
-                    .map(type => types.findIndex((columnType, index) =>
-                        columnType === type && tuple[index] === assignments[type]
-                    ))
-                    .filter(index => index >= 0)
-                    .sort((left, right) => right - left)
-                remove.forEach(index => result.splice(index, 1))
-                return result
-            })
-            types = remainingTypes
+    const types = source.types.filter(type => !removedTypes.has(type.name))
+    const sets = source.sets.filter(set => !(set.parents || []).some(parent => removedTypes.has(parent)))
+    const rels = []
+
+    source.rels.forEach(relation => {
+        // Without relation type metadata, the columns cannot be projected
+        // soundly. Preserve the relation unchanged rather than guessing.
+        if (!Array.isArray(relation.types)) {
+            rels.push({ ...relation, atoms: relation.atoms.map(tuple => tuple.slice()) })
+            return
         }
 
-        if (types && originalArity > 1 && types.length === 1) {
-            sets.push({
-                name: relation.name,
-                parents: types.slice(),
+        const removedColumns = []
+        const remainingTypes = []
+        relation.types.forEach((typeName, index) => {
+            if (removedTypes.has(typeName)) removedColumns.push(index)
+            else remainingTypes.push(typeName)
+        })
+
+        if (remainingTypes.length === 0) return
+
+        const tuples = relation.atoms
+            .filter(tuple => removedColumns.every(index => {
+                const projectionRoot = projectionRootFor(relation.types[index])
+                // If the model says the column type was removed as a subtype,
+                // find the projected ancestor whose selected atom constrains it.
+                if (!projectionRoot) return false
+                const focusedAtom = projected.get(projectionRoot)
+                return focusedAtom == null
+                    ? tuple[index] == null
+                    : tuple[index] === focusedAtom
+            }))
+            .map(tuple => tuple.filter((_, index) => !removedColumns.includes(index)))
+
+        if (remainingTypes.length === 1) {
+            const { types: _types, arity: _arity, ...setMetadata } = relation
+            addProjectedSet(sets, {
+                ...setMetadata,
+                parents: [remainingTypes[0]],
                 atoms: [...new Set(tuples.map(tuple => tuple[0]))]
             })
         } else {
             rels.push({
                 ...relation,
-                ...(types ? { types, arity: types.length } : {}),
+                types: remainingTypes,
+                arity: remainingTypes.length,
                 atoms: tuples
             })
         }
     })
 
-    return result
+    return { types, sets, rels }
+}
+
+function addProjectedSet(sets, candidate) {
+    const existing = sets.find(set => set.name === candidate.name
+        && JSON.stringify(set.parents || []) === JSON.stringify(candidate.parents || []))
+    if (!existing) {
+        sets.push(candidate)
+        return
+    }
+    existing.atoms = [...new Set([...(existing.atoms || []), ...(candidate.atoms || [])])]
 }

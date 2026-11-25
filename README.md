@@ -78,6 +78,24 @@ inspect the instance or trace.
 npm test
 ```
 
+## Projection ground-truth integration test
+
+The visualizer's local projection can be compared with the Alloy library's
+projection through the generic Alloy Web API. Start the API, then run:
+
+```sh
+ALLOY_WEB_API_URL=http://localhost:4001 npm run test:projection
+```
+
+The test creates a fresh solver session with `/getInstances`, passes that
+exact returned instance to the local projector, requests the corresponding
+ground-truth result from `/getProjection`, and compares the normalized
+instance structures. It iterates over every atom in each non-built-in
+signature in the fixture, covering projection on both the left and right
+sides of relations. It needs no API-specific metadata added to the source
+instance. With `ALLOY_WEB_API_URL` unset, this external integration test is
+skipped by `npm test`; set it to a reachable API URL to run it.
+
 ## Third-party attribution
 
 The navigation controls use the Font Awesome Free solid webfont, version
@@ -90,15 +108,14 @@ or second Font Awesome version is required.
 
 ## Repository and A4F integration
 
-The intended GitHub repository is
-[`haslab/alloy-a4f-visualizer`](https://github.com/haslab/alloy-a4f-visualizer).
-This checkout is prepared with the package identity and repository metadata,
-but Git repository initialization, remote creation, commits, tags, and pushes
-are intentionally left to the maintainer.
+The source repository is
+[`nmacedo/alloy-a4f-visualizer`](https://github.com/nmacedo/alloy-a4f-visualizer).
+The initial repository commit is published. Create a versioned release tag
+after projection behavior and its regression tests meet the A4F 2.0 criteria.
 
 While both checkouts are on the same development machine, Alloy4Fun can depend
-on this package through a local `file:` dependency. Once the GitHub repository
-exists and has its initial commit, switch A4F's dependency to the repository
-URL and pin it to a release tag (rather than a moving branch) before building
-or deploying A4F. Keep the package name `alloy-a4f-visualizer` consistent in
-both projects.
+on this package through a local `file:` dependency during local development.
+Once a versioned release tag exists, switch A4F's dependency to the repository
+URL and pin it to that tag (rather than a moving branch) before building or
+deploying A4F. Keep the package name `alloy-a4f-visualizer` consistent in both
+projects.
