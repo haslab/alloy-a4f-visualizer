@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://alloy4fun.github.io/alloy-visualizer/instance-trace.schema.json",
+  "title": "Alloy visualizer instance or trace",
+  "description": "Canonical document exchanged with the standalone visualizer.",
+  "type": "object",
+  "required": ["states", "loop"],
+  "properties": {
+    "states": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/state" }
+    },
+    "loop": {
+      "type": "integer",
+      "minimum": -1,
+      "description": "-1 for a single instance; otherwise the zero-based trace loop target."
+    },
+    "scope": { "$ref": "#/$defs/scope" }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "loop": { "const": -1 } } },
+      "then": { "properties": { "states": { "maxItems": 1 } } }
+    }
+  ],
+  "additionalProperties": true,
+  "$defs": {
+    "state": {
+      "type": "object",
+      "required": ["types", "sets", "rels"],
+      "properties": {
+        "types": { "type": "array", "items": { "$ref": "#/$defs/node" } },
+        "sets": { "type": "array", "items": { "$ref": "#/$defs/node" } },
+        "rels": { "type": "array", "items": { "$ref": "#/$defs/relation" } }
+      },
+      "additionalProperties": true
+    },
+    "node": {
+      "type": "object",
+      "required": ["name", "parents", "atoms"],
+      "properties": {
+        "name": { "type": "string" },
+        "parents": { "type": "array", "items": { "type": "string" } },
+        "atoms": { "type": "array", "items": { "type": "string" } }
+      },
+      "additionalProperties": true
+    },
+    "relation": {
+      "type": "object",
+      "required": ["name", "arity", "types", "atoms"],
+      "properties": {
+        "name": { "type": "string" },
+        "arity": { "type": "integer", "minimum": 0 },
+        "types": { "type": "array", "items": { "type": "string" } },
+        "atoms": {
+          "type": "array",
+          "items": { "type": "array", "items": { "type": "string" } }
+        }
+      },
+      "additionalProperties": true
+    },
+    "scope": {
+      "type": "object",
+      "properties": {
+        "bitwidth": { "type": "integer" },
+        "maxseq": { "type": "integer" },
+        "mintrace": { "type": "integer" },
+        "maxtrace": { "type": "integer" }
+      },
+      "additionalProperties": true
+    }
+  }
+}

@@ -1,0 +1,23 @@
+/*! Font Awesome Free 5.6.3 by Fonticons, Inc. (https://fontawesome.com). Font license: SIL OFL 1.1; see LICENSES/FontAwesome-LICENSE.txt. */
+@font-face {
+    font-family: 'Font Awesome 5 Free';
+    font-style: normal;
+    font-weight: 900;
+    font-display: block;
+    src: url('../node_modules/@fortawesome/fontawesome-free/webfonts/fa-solid-900.woff2') format('woff2');
+}
+
+.fa {
+    display: inline-block;
+    font: normal normal normal 14px/1 'Font Awesome 5 Free';
+    font-size: inherit;
+    text-rendering: auto;
+    -webkit-font-smoothing: antialiased;
+}
+
+.fa-fw { width: 1.28571429em; text-align: center; }
+.fa-arrow-left::before { content: '\f060'; }
+.fa-arrow-right::before { content: '\f061'; }
+.fa-undo::before { content: '\f0e2'; }
+.fa-step-backward::before { content: '\f048'; }
+.fa-step-forward::before { content: '\f051'; }

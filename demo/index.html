@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Alloy visualizer demo</title>
+  <link rel="stylesheet" href="/src/visualizer.css">
+  <link rel="stylesheet" href="/demo/visualizer.css">
+  <style>
+    body { font: 16px sans-serif; margin: 2rem; }
+    textarea { box-sizing: border-box; height: 10rem; width: 100%; }
+    .visualizer-canvas { margin-top: 1rem; }
+    .controls { align-items: center; display: flex; gap: .75rem; margin-top: .75rem; }
+  </style>
+</head>
+<body>
+  <h1>Alloy visualizer</h1>
+  <p>Load a canonical instance/trace or an Alloy4Fun execution response.</p>
+  <select id="example" aria-label="Example JSON">
+    <option value="">Choose an example...</option>
+    <option value="instance.json">Single instance</option>
+    <option value="trace.json">Looping trace</option>
+    <option value="execution.json">Alloy4Fun execution response</option>
+  </select>
+  <input id="file" type="file" accept="application/json,.json">
+  <textarea id="json" aria-label="Instance JSON"></textarea>
+  <button id="load" type="button">Load JSON</button>
+  <p id="status" role="status"></p>
+  <div id="instanceViewer" class="visualizer-canvas" aria-label="Alloy instance viewer">
+    <div id="graph" aria-label="Alloy instance graph"></div>
+  </div>
+  <script src="/node_modules/cytoscape/dist/cytoscape.min.js"></script>
+  <script type="importmap">
+    {"imports":{"cytoscape":"/demo/cytoscape.js"}}
+  </script>
+  <script type="module" src="/demo/main.js"></script>
+</body>
+</html>

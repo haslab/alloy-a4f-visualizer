@@ -1,0 +1,44 @@
+{
+  "states": [{
+    "types": [
+    {
+      "name": "Person",
+      "parents": ["univ"],
+      "atoms": ["Person$0", "Person$1"]
+    },
+    {
+      "name": "Room",
+      "parents": ["univ"],
+      "atoms": ["Room$0"]
+    }
+    ],
+    "sets": [
+    {
+      "name": "Student",
+      "parents": ["Person"],
+      "atoms": ["Person$0"]
+    }
+    ],
+    "rels": [
+    {
+      "name": "knows",
+      "arity": 2,
+      "types": ["Person", "Person"],
+      "atoms": [["Person$0", "Person$1"]]
+    },
+    {
+      "name": "visits",
+      "arity": 2,
+      "types": ["Person", "Room"],
+      "atoms": [["Person$0", "Room$0"]]
+    },
+    {
+      "name": "emptyRelation",
+      "arity": 3,
+      "types": ["Person", "Person", "Person"],
+      "atoms": []
+    }
+    ]
+  }],
+  "loop": -1
+}

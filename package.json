@@ -1,0 +1,29 @@
+{
+  "name": "alloy-a4f-visualizer",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Standalone, reusable visualization for Alloy instances and traces",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/haslab/alloy-a4f-visualizer.git"
+  },
+  "type": "module",
+  "main": "src/index.js",
+  "exports": {
+    ".": "./src/index.js",
+    "./graph-model": "./src/graphModel.js",
+    "./renderer": "./src/graphRenderer.js",
+    "./style": "./src/cytoscapeStyle.js",
+    "./interactions": "./src/graphInteractions.js",
+    "./theme": "./src/themeModel.js",
+    "./visualizer.css": "./src/visualizer.css"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.js",
+    "demo": "node demo/server.js"
+  },
+  "dependencies": {
+    "@fortawesome/fontawesome-free": "5.6.3",
+    "cytoscape": "^2.7.29"
+  }
+}

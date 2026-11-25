@@ -1,0 +1,30 @@
+{
+  "schema": "alloy-execution",
+  "version": 1,
+  "sessionId": "demo-session",
+  "unsat": false,
+  "static": false,
+  "check": false,
+  "cmd_n": "run$demo",
+  "cnt": 0,
+  "scope": {
+    "bitwidth": 4,
+    "maxseq": 4,
+    "mintrace": 1,
+    "maxtrace": 2
+  },
+  "states": [
+    {
+      "types": [
+        {"name": "User", "parents": ["univ"], "atoms": ["User$0", "User$1"]}
+      ],
+      "sets": [
+        {"name": "Admin", "parents": ["User"], "atoms": ["User$0"]}
+      ],
+      "rels": [
+        {"name": "follows", "arity": 2, "types": ["User", "User"], "atoms": [["User$0", "User$1"]]}
+      ]
+    }
+  ],
+  "loop": 0
+}

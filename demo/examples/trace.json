@@ -1,0 +1,36 @@
+{
+  "schema": "alloy-trace",
+  "version": 1,
+  "scope": {
+    "bitwidth": 4,
+    "maxseq": 4,
+    "mintrace": 1,
+    "maxtrace": 3
+  },
+  "states": [
+    {
+      "types": [
+        {"name": "Node", "parents": ["univ"], "atoms": ["Node$0"]}
+      ],
+      "sets": [],
+      "rels": []
+    },
+    {
+      "types": [
+        {"name": "Node", "parents": ["univ"], "atoms": ["Node$0", "Node$1"]}
+      ],
+      "sets": [],
+      "rels": [
+        {"name": "next", "arity": 2, "types": ["Node", "Node"], "atoms": [["Node$0", "Node$1"]]}
+      ]
+    },
+    {
+      "types": [
+        {"name": "Node", "parents": ["univ"], "atoms": ["Node$0"]}
+      ],
+      "sets": [],
+      "rels": []
+    }
+  ],
+  "loop": 1
+}
