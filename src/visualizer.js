@@ -14,6 +14,7 @@ import { projectInstance } from './instanceProjection.js'
 import { instanceToGraph } from './graphModel.js'
 import { createVisualizerState } from './visualizerState.js'
 import { createInitialStateResolver, serializePreferences } from './preferences.js'
+import { normalizeDocument } from './schema.js'
 
 /**
  * Mounts the complete reusable visualizer canvas.
@@ -37,10 +38,18 @@ export function createVisualizer(container, {
     onResetTheme,
     appearance = 'light'
 } = {}) {
-    if (!container) throw new TypeError('A visualizer container is required')
+    if (!container || !container.parentElement) {
+        throw new TypeError('A visualizer container with a parent element is required')
+    }
+    // Validate before mounting so bad initial input cannot leave a live renderer.
+    if (initialDocument !== undefined) initialDocument = normalizeDocument(initialDocument)
+    if (appearance !== 'light' && appearance !== 'dark') throw new RangeError(`Unknown appearance: ${appearance}`)
 
+    const canvas = container.parentElement
+    const hadGraphClass = container.classList.contains('visualizer-graph')
+    const hadCanvasClass = canvas.classList.contains('visualizer-canvas')
     container.classList.add('visualizer-graph')
-    if (container.parentElement) container.parentElement.classList.add('visualizer-canvas')
+    canvas.classList.add('visualizer-canvas')
 
     const themeState = createThemeState({ onChange: refreshGraph })
     const unsubscribeTheme = onThemeChange || onPreferencesChange
@@ -53,6 +62,9 @@ export function createVisualizer(container, {
     if (positions || (preferences && preferences.nodePositions)) {
         positionStore.set(positions || preferences.nodePositions)
     }
+    const unsubscribePositions = onPreferencesChange
+        ? positionStore.subscribe(() => onPreferencesChange(getPreferences()))
+        : undefined
     const visualizerState = createVisualizerState({ onChange })
     let settingDocument = false
     let hasDocument = false
@@ -111,16 +123,17 @@ export function createVisualizer(container, {
             return false
         },
         onNodeContext: event => {
-            const data = event.cyTarget.data()
+            const data = event.target.data()
             contextMenu.open({ kind: 'node', labels: [data.type].concat(data.subsetSigs || []) }, menuPosition(event))
             return false
         },
         onEdgeContext: event => {
-            const data = event.cyTarget.data()
+            const data = event.target.data()
             contextMenu.open({ kind: 'edge', labels: [themeState.relationId(data)] }, menuPosition(event))
             return false
         },
-        onEdgeTap: event => event.cyTarget.select(),
+        onEdgeTap: event => event.target.select(),
+        onNodeFree: capturePositions,
         onTap: () => contextMenu.hide(),
         onRender
     })
@@ -206,7 +219,7 @@ export function createVisualizer(container, {
             stateGraphs.forEach(stateGraph => addGraph(graph, stateGraph))
         }
 
-        const layoutElements = graph.elements().filter((index, element) => element.visible())
+        const layoutElements = graph.elements().filter(element => element.visible())
         const shouldFit = fitAfterLayout
         fitAfterLayout = false
         const generation = documentGeneration
@@ -237,8 +250,14 @@ export function createVisualizer(container, {
                     positionStore.apply(graph)
                 })
             })
-        } else if (shouldFit) {
-            graph.one('layoutstop', () => fitVisibleGraph(generation, layoutRun))
+        } else {
+            graph.one('layoutstop', () => {
+                requestAnimationFrame(() => {
+                    if (destroyed || generation !== documentGeneration || layoutRun !== layoutGeneration) return
+                    positionStore.capture(layoutElements)
+                })
+                if (shouldFit) fitVisibleGraph(generation, layoutRun)
+            })
         }
         applyLayout(layoutElements, layouts[currentLayout] || layouts.breadthfirst,
             restorePositions ? positionStore : undefined)
@@ -257,6 +276,9 @@ export function createVisualizer(container, {
     }
 
     function setDocument(nextDocument, initialIndex) {
+        // Reject invalid replacements before clearing positions or consuming
+        // saved initial-state preferences.
+        nextDocument = normalizeDocument(nextDocument)
         const replacingDocument = hasDocument
         hasDocument = true
         const selectedIndex = resolveInitialState(nextDocument, initialIndex)
@@ -343,9 +365,9 @@ export function createVisualizer(container, {
     const controlsContainer = document.createElement('div')
     controlsContainer.className = 'alloy-visualizer-controls'
     const traceContainer = document.createElement('div')
-    traceContainer.id = 'traceControls'
+    traceContainer.className = 'alloy-trace-controls'
     const projectionContainer = document.createElement('div')
-    projectionContainer.id = 'projectionControls'
+    projectionContainer.className = 'alloy-projection-controls'
     controlsContainer.append(traceContainer, projectionContainer)
     container.parentElement.insertBefore(controlsContainer, container)
 
@@ -353,15 +375,26 @@ export function createVisualizer(container, {
     projectionControls = createProjectionControls(projectionContainer, { controller: projectionController, atomsForType })
 
     function destroy() {
+        if (destroyed) return
         destroyed = true
+        resizeObserver?.disconnect()
         contextMenu.hide()
         contextMenu.destroy()
         graph.destroy()
         if (unsubscribeTheme) unsubscribeTheme()
+        if (unsubscribePositions) unsubscribePositions()
         if (traceControls) traceControls.destroy()
         if (projectionControls) projectionControls.destroy()
         controlsContainer.remove()
+        if (!hadGraphClass) container.classList.remove('visualizer-graph')
+        if (!hadCanvasClass) canvas.classList.remove('visualizer-canvas')
     }
+
+    // Hosts commonly resize panes without resizing the browser window.
+    const resizeObserver = typeof ResizeObserver === 'function'
+        ? new ResizeObserver(() => { if (!destroyed) graph.resize() })
+        : undefined
+    resizeObserver?.observe(container)
 
     const initialTheme = theme || (preferences && preferences.sigSettings ? preferences : undefined)
     if (initialTheme) {

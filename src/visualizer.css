@@ -1,20 +1,32 @@
-.fas {
+/* Font Awesome Free 5.6.3 by Fonticons, Inc.; SIL OFL 1.1.
+   Unmodified local font; attribution and license in LICENSES/FontAwesome-LICENSE.txt. */
+@font-face {
+    font-family: 'Alloy Visualizer Icons';
+    font-style: normal;
+    font-weight: 900;
+    font-display: block;
+    src: url('./fonts/fa-solid-900.woff2') format('woff2');
+}
+
+.alloy-visualizer-controls .fas {
     display: inline-block;
-    font-family: 'Font Awesome 5 Free';
+    font-family: 'Alloy Visualizer Icons';
+    font-style: normal;
     font-weight: 900;
     text-rendering: auto;
     -webkit-font-smoothing: antialiased;
 }
 
-.fa-fw { width: 1.28571429em; text-align: center; }
-.fa-arrow-left::before { content: '\f060'; }
-.fa-arrow-right::before { content: '\f061'; }
-.fa-undo::before { content: '\f0e2'; }
-.fa-step-backward::before { content: '\f048'; }
-.fa-step-forward::before { content: '\f051'; }
+.alloy-visualizer-controls .fa-fw { width: 1.28571429em; text-align: center; }
+.alloy-visualizer-controls .fa-arrow-left::before { content: '\f060'; }
+.alloy-visualizer-controls .fa-arrow-right::before { content: '\f061'; }
+.alloy-visualizer-controls .fa-undo::before { content: '\f0e2'; }
+.alloy-visualizer-controls .fa-step-backward::before { content: '\f048'; }
+.alloy-visualizer-controls .fa-step-forward::before { content: '\f051'; }
 
 /* Host layout rules must not override the component's hidden state. */
-.frame-navigation[hidden] { display: none !important; }
+.alloy-trace-controls[hidden], .alloy-projection-controls[hidden],
+.alloy-visualizer-menu[hidden] { display: none !important; }
 
 /* Default canvas presentation. Hosts may override dimensions to fit their UI. */
 .visualizer-canvas {
@@ -27,8 +39,8 @@
 .visualizer-graph { width: 100%; height: 100%; }
 
 /* Alloy context menu. */
-#optionsMenu { margin: 0; width: auto; height: auto; }
-#cssmenu, #cssmenu ul, #cssmenu ul li, #cssmenu ul li a {
+.alloy-visualizer-menu { margin: 0; width: auto; height: auto; }
+.alloy-visualizer-menu-list, .alloy-visualizer-menu-list ul, .alloy-visualizer-menu-list ul li, .alloy-visualizer-menu-list ul li a {
     margin: 0;
     padding: 0;
     border: 0;
@@ -38,11 +50,11 @@
     position: relative;
     box-sizing: border-box;
 }
-#cssmenu { width: 300px; font-family: inherit; color: #333; }
-#cssmenu ul { border-bottom: 1px solid grey; }
-#cssmenu ul ul { display: none; }
-#cssmenu > ul > li.open > ul { display: block; }
-#cssmenu > ul > li > a {
+.alloy-visualizer-menu-list { width: 300px; font-family: inherit; color: #333; }
+.alloy-visualizer-menu-list ul { border-bottom: 1px solid grey; }
+.alloy-visualizer-menu-list ul ul { display: none; }
+.alloy-visualizer-menu-list > ul > li.open > ul { display: block; }
+.alloy-visualizer-menu-list > ul > li > a {
     padding: 12px 22px;
     cursor: pointer;
     z-index: 2;
@@ -53,9 +65,9 @@
     border-color: transparent;
     transition: color .2s ease;
 }
-#cssmenu > ul > li > a:hover { color: #d8f3f0; }
-#cssmenu ul > li.has-sub > a:after,
-#cssmenu ul > li.has-sub > a:before {
+.alloy-visualizer-menu-list > ul > li > a:hover { color: #d8f3f0; }
+.alloy-visualizer-menu-list ul > li.has-sub > a:after,
+.alloy-visualizer-menu-list ul > li.has-sub > a:before {
     position: absolute;
     z-index: 5;
     display: block;
@@ -63,11 +75,11 @@
     background: #fff;
     transition: all .1s ease-out;
 }
-#cssmenu ul > li.has-sub > a:after { right: 26px; top: 19px; height: 10px; width: 2px; }
-#cssmenu ul > li.has-sub > a:before { right: 22px; top: 23px; width: 10px; height: 2px; }
-#cssmenu ul > li.has-sub.open > a:after,
-#cssmenu ul > li.has-sub.open > a:before { transform: rotate(45deg); }
-#cssmenu ul ul li a {
+.alloy-visualizer-menu-list ul > li.has-sub > a:after { right: 26px; top: 19px; height: 10px; width: 2px; }
+.alloy-visualizer-menu-list ul > li.has-sub > a:before { right: 22px; top: 23px; width: 10px; height: 2px; }
+.alloy-visualizer-menu-list ul > li.has-sub.open > a:after,
+.alloy-visualizer-menu-list ul > li.has-sub.open > a:before { transform: rotate(45deg); }
+.alloy-visualizer-menu-list ul ul li a {
     padding: 14px 22px;
     cursor: pointer;
     z-index: 2;
@@ -77,18 +89,18 @@
     background: #49505a;
     transition: color .2s ease;
 }
-#cssmenu ul ul li a:hover { color: #fff; }
-#cssmenu ul ul li { padding: 6px 12px; background: #49505a; }
-#cssmenu select {
+.alloy-visualizer-menu-list ul ul li a:hover { color: #fff; }
+.alloy-visualizer-menu-list ul ul li { padding: 6px 12px; background: #49505a; }
+.alloy-visualizer-menu-list select {
     width: 100%;
     background-color: rgba(142, 140, 140, .88);
     padding-left: 16px;
 }
 
 /* Trace navigation and projection controls. */
-#traceControls { position: absolute; inset: 0; z-index: 10; pointer-events: none; }
-#traceControls > button { pointer-events: auto; }
-#prevTrace, #nextTrace {
+.alloy-trace-controls { position: absolute; inset: 0; z-index: 10; pointer-events: none; }
+.alloy-trace-controls > button { pointer-events: auto; }
+.alloy-trace-previous, .alloy-trace-next {
     position: absolute;
     top: 50%;
     z-index: 10;
@@ -97,9 +109,9 @@
     font-size: 48px;
     transform: translateY(-50%);
 }
-#prevTrace { left: 0; padding-bottom: 0; }
-#nextTrace { right: 0; }
-#currentTrace {
+.alloy-trace-previous { left: 0; padding-bottom: 0; }
+.alloy-trace-next { right: 0; }
+.alloy-trace-current {
     position: absolute;
     right: 0;
     bottom: 0;
@@ -109,16 +121,16 @@
     font-size: 56px;
     line-height: 1;
 }
-#prevTrace, #nextTrace, .frame-navigation .cbutton {
+.alloy-trace-previous, .alloy-trace-next, .alloy-projection-controls .cbutton {
     color: #009933;
     border: 0;
     background: none;
     -webkit-tap-highlight-color: transparent;
 }
-#prevTrace[disabled], #nextTrace[disabled], .frame-navigation .cbutton[disabled] {
+.alloy-trace-previous[disabled], .alloy-trace-next[disabled], .alloy-projection-controls .cbutton[disabled] {
     color: #6d8a88 !important;
 }
-.frame-navigation {
+.alloy-projection-controls {
     position: absolute;
     bottom: 10px;
     left: 50%;
@@ -131,8 +143,8 @@
     max-width: calc(100% - 1rem);
     transform: translateX(-50%);
 }
-.frame-navigation .cbutton { margin: 0; padding: 0; }
-.projection-type-control {
+.alloy-projection-controls .cbutton { margin: 0; padding: 0; }
+.alloy-projection-controls .projection-type-control {
     display: inline-flex;
     align-items: center;
     gap: .35rem;
@@ -141,12 +153,6 @@
     background: rgba(142, 140, 140, .88);
     color: #222;
 }
-.projection-type-label { font-weight: 600; }
-.projection-focused-atom { min-width: 5ch; text-align: center; }
-.projection-atom-button { font-size: 1.2em; }
-.changeAtomShapePicker, .changeLayoutPicker,
-.changeAtomColorPicker, .changeAtomBorderPicker {
-    width: 100%;
-    background-color: rgba(142, 140, 140, .88);
-    padding-left: 16px;
-}
+.alloy-projection-controls .projection-type-label { font-weight: 600; }
+.alloy-projection-controls .projection-focused-atom { min-width: 5ch; text-align: center; }
+.alloy-projection-controls .projection-atom-button { font-size: 1.2em; }

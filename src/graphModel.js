@@ -24,14 +24,14 @@ export function instanceToGraph(inst) {
         ;(set.atoms || []).forEach((atom) => {
             const node = nodes.find(candidate => candidate.data.id === atom)
             if (!node) return
-            const parents = set.parents.length > 0 ? set.parents : [node.data.type]
-            parents.forEach(parent => {
-                const subsetSig = `${set.name}:${parent}`
-                if (!node.data.subsetSigs.includes(subsetSig)) node.data.subsetSigs.push(subsetSig)
-                if (!signatures.some(sig => sig.name === subsetSig)) {
-                    signatures.push({ name: subsetSig, parent, parents: [parent], subset: true })
-                }
-            })
+            // Preserve A4F's persisted subset keys and inheritance: use the
+            // member atom's concrete type, not the set's declared parents.
+            const parent = node.data.type
+            const subsetSig = `${set.name}:${parent}`
+            if (!node.data.subsetSigs.includes(subsetSig)) node.data.subsetSigs.push(subsetSig)
+            if (!signatures.some(sig => sig.name === subsetSig)) {
+                signatures.push({ name: subsetSig, parent, parents: [parent], subset: true })
+            }
         })
     })
 

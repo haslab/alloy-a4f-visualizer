@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Visualizer renderer regression harness</title>
+  <link rel="stylesheet" href="/src/visualizer.css">
+  <style>.visualizer-canvas { width: 800px; height: 500px; }</style>
+</head>
+<body>
+  <div class="visualizer-canvas"><div id="graph" class="visualizer-graph"></div></div>
+  <script src="/node_modules/cytoscape/dist/cytoscape.min.js"></script>
+  <script type="importmap">{"imports":{"cytoscape":"/test/browser/cytoscape.js"}}</script>
+  <script type="module">
+    import { createVisualizer } from '/src/index.js'
+    window.preferenceChanges = []
+    window.visualizer = createVisualizer(document.getElementById('graph'), {
+      onPreferencesChange: value => window.preferenceChanges.push(value)
+    })
+  </script>
+</body>
+</html>

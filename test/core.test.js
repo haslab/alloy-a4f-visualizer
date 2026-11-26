@@ -35,6 +35,52 @@ describe('Alloy visualizer core', function() {
         assert.equal(graph.edges[0].data.parent_sig, 'Person')
     })
 
+    it('preserves legacy subset theme keys and concrete-type inheritance', function() {
+        for (const metadata of [{ parent: 'Person' }, { parents: ['Person'] }]) {
+            const graph = instanceToGraph({
+                types: [
+                    { name: 'Person', parent: 'univ', atoms: [] },
+                    { name: 'Student', parent: 'Person', atoms: ['Student0'] }
+                ],
+                sets: [{ name: 'Chosen', ...metadata, atoms: ['Student0'] }],
+                rels: []
+            })
+            const subset = graph.nodes[0].data.subsetSigs[0]
+            assert.equal(subset, 'Chosen:Student')
+            assert.deepEqual(graph.signatures.find(sig => sig.subset), {
+                name: 'Chosen:Student', parent: 'Student', parents: ['Student'], subset: true
+            })
+            const generalSettings = {
+                metaPrimSigs: [{ type: 'Person', parent: 'univ' }, { type: 'Student', parent: 'Person' }],
+                metaSubsetSigs: [{ type: subset, parent: 'Student' }]
+            }
+            const theme = createThemeState()
+            const nodeColors = [{ type: 'Person', color: 'red' }, { type: 'Student', color: 'purple' }]
+            theme.init({ sigSettings: { nodeColors }, generalSettings })
+            assert.equal(theme.getInheritedAtomColor(subset), 'purple')
+            theme.init({
+                sigSettings: { nodeColors: [...nodeColors, { type: 'Chosen:Student', color: 'blue' }] },
+                generalSettings
+            })
+            assert.equal(theme.getInheritedAtomColor(subset), 'blue')
+        }
+    })
+
+    it('uses each member atom concrete type for sets with multiple declared parents', function() {
+        const graph = instanceToGraph({
+            types: [
+                { name: 'A', parents: ['univ'], atoms: ['A0'] },
+                { name: 'B', parents: ['univ'], atoms: ['B0'] }
+            ],
+            sets: [{ name: 'Chosen', parents: ['A', 'B'], atoms: ['A0', 'B0'] }],
+            rels: []
+        })
+        assert.deepEqual(graph.nodes.map(node => node.data.subsetSigs), [['Chosen:A'], ['Chosen:B']])
+        assert.deepEqual(graph.signatures.filter(sig => sig.subset).map(sig => [sig.name, sig.parent]),
+            [['Chosen:A', 'A'], ['Chosen:B', 'B']])
+        assert.equal(nodeLabel(graph.nodes[0].data), 'A0\n(Chosen)\n')
+    })
+
     it('derives labels without application state', function() {
         assert.equal(relationLabel({ relation: 'visits', atoms: ['A', 'Room', 'Day', 'B'] }), 'visits [Room,Day]')
         assert.equal(nodeLabel({ id: 'A', subsetSigs: ['S:A'] }, 'r: B'), 'A\n(S)\nr: B')
@@ -85,7 +131,20 @@ describe('Alloy visualizer core', function() {
     it('binds generic renderer interactions', function() {
         const bindings = []
         bindGraphInteractions({ on: (...args) => bindings.push(args) }, {})
-        assert.deepEqual(bindings.map(binding => binding[0]), ['cxttap', 'tap', 'render'])
+        assert.deepEqual(bindings.map(binding => binding[0]), ['cxttap', 'tap', 'render', 'free'])
+    })
+
+    it('reports completed node drags through renderer interactions', function() {
+        const bindings = []
+        const released = []
+        bindGraphInteractions({ on: (...args) => bindings.push(args) }, {
+            onNodeFree: event => released.push(event)
+        })
+        const [, selector, handler] = bindings.find(binding => binding[0] === 'free')
+        assert.equal(selector, 'node')
+        const event = { target: { id: 'A0' } }
+        handler(event)
+        assert.deepEqual(released, [event])
     })
 
     it('navigates trace states and follows the loop', function() {
@@ -320,6 +379,21 @@ describe('Alloy visualizer core', function() {
         assert.equal(values.A.x, 10)
         applyLayout(renderer, { name: 'grid' }, positions)
         assert.deepEqual(positions.snapshot().B, { x: 30, y: 40 })
+    })
+
+    it('notifies position subscribers on capture and clearing, and supports unsubscribing', function() {
+        const updates = []
+        const store = createPositionStore()
+        const unsubscribe = store.subscribe(value => updates.push(value))
+        store.capture({ nodes: () => [{ data: () => ({ id: 'A0' }), position: () => ({ x: 12, y: 34 }) }] })
+        assert.deepEqual(updates, [{ A0: { x: 12, y: 34 } }])
+        updates[0].A0.x = 99
+        assert.equal(store.snapshot().A0.x, 12)
+        store.clear()
+        assert.deepEqual(updates[1], {})
+        unsubscribe()
+        store.set({ B0: { x: 56, y: 78 } })
+        assert.equal(updates.length, 2)
     })
 
     it('projects a state without mutating the source', function() {

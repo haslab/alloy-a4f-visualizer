@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://alloy4fun.github.io/alloy-visualizer/instance-trace.schema.json",
+  "$id": "https://haslab.github.io/alloy-a4f-visualizer/instance-trace.schema.json",
   "title": "Alloy visualizer instance or trace",
   "description": "Canonical document exchanged with the standalone visualizer.",
   "type": "object",
@@ -30,28 +30,40 @@
       "type": "object",
       "required": ["types", "sets", "rels"],
       "properties": {
-        "types": { "type": "array", "items": { "$ref": "#/$defs/node" } },
-        "sets": { "type": "array", "items": { "$ref": "#/$defs/node" } },
+        "types": { "type": "array", "items": { "$ref": "#/$defs/type" } },
+        "sets": { "type": "array", "items": { "$ref": "#/$defs/subset" } },
         "rels": { "type": "array", "items": { "$ref": "#/$defs/relation" } }
       },
       "additionalProperties": true
     },
+    "type": {
+      "description": "A type has at most one immediate parent (none for a root).",
+      "allOf": [
+        { "$ref": "#/$defs/node" },
+        { "properties": { "parents": { "maxItems": 1 } } }
+      ]
+    },
+    "subset": {
+      "description": "A subset may have multiple parents, as in sig S in A + B.",
+      "allOf": [{ "$ref": "#/$defs/node" }]
+    },
     "node": {
       "type": "object",
-      "required": ["name", "parents", "atoms"],
+      "required": ["name", "atoms"],
       "properties": {
-        "name": { "type": "string" },
+        "name": { "type": "string", "minLength": 1 },
         "isVar": { "type": "boolean" },
         "parents": { "type": "array", "items": { "type": "string" } },
+        "parent": { "type": ["string", "null"], "description": "Legacy Alloy4Fun single-parent representation; parents takes precedence." },
         "atoms": { "type": "array", "items": { "type": "string" } }
       },
       "additionalProperties": true
     },
     "relation": {
       "type": "object",
-      "required": ["name", "arity", "types", "atoms"],
+      "required": ["name", "atoms"],
       "properties": {
-        "name": { "type": "string" },
+        "name": { "type": "string", "minLength": 1 },
         "arity": { "type": "integer", "minimum": 0 },
         "types": { "type": "array", "items": { "type": "string" } },
         "atoms": {

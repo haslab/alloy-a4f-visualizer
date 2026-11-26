@@ -7,7 +7,7 @@ export function createProjectionControls(container, { controller, atomsForType }
         throw new TypeError('A container, projection controller, and atom lookup are required')
     }
 
-    container.classList.add('frame-navigation', 'row')
+    container.classList.add('alloy-projection-controls')
 
     function render() {
         const assignments = controller.snapshot().assignments

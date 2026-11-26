@@ -6,7 +6,9 @@ function clonePosition(position) {
 // here so hosts select the same Cytoscape layout, rather than getting a
 // simplified replacement from the standalone wrapper.
 export const layouts = {
-    breadthfirst: { name: 'breadthfirst', avoidOverlap: true, maximalAdjustments: 1, padding: 10, directed: true, spacingFactor: 0.1 },
+    // Cytoscape 3 scales final positions by spacingFactor, after overlap
+    // avoidance. The old 0.1 value compressed even correctly spaced nodes.
+    breadthfirst: { name: 'breadthfirst', avoidOverlap: true, maximalAdjustments: 1, padding: 10, directed: true, spacingFactor: 1 },
     cocentric: {
         name: 'concentric', fit: true, padding: 10, startAngle: 3 / 2 * Math.PI,
         clockwise: true, equidistant: false, minNodeSpacing: 10, avoidOverlap: true,

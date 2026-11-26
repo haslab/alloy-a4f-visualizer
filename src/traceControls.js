@@ -14,15 +14,13 @@ export function createTraceControls(container, {
 
     const previous = document.createElement('button')
     previous.type = 'button'
-    previous.id = 'prevTrace'
-    previous.className = 'cbutton'
+    previous.className = 'cbutton alloy-trace-previous'
     previous.setAttribute('aria-label', previousLabel)
     previous.innerHTML = '<i class="cbutton__icon fas fa-fw fa-arrow-left" aria-hidden="true"></i>'
 
     const next = document.createElement('button')
     next.type = 'button'
-    next.id = 'nextTrace'
-    next.className = 'cbutton'
+    next.className = 'cbutton alloy-trace-next'
     next.setAttribute('aria-label', nextLabel)
 
     const nextIcon = document.createElement('i')
@@ -31,7 +29,7 @@ export function createTraceControls(container, {
     next.appendChild(nextIcon)
 
     const current = document.createElement('div')
-    current.id = 'currentTrace'
+    current.className = 'alloy-trace-current'
     current.setAttribute('aria-live', 'polite')
 
     container.replaceChildren(previous, next, current)

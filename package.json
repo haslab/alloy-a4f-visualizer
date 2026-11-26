@@ -1,11 +1,20 @@
 {
   "name": "alloy-a4f-visualizer",
-  "version": "0.1.0",
+  "version": "1.0.0",
+  "license": "MIT",
   "private": true,
+  "files": [
+    "src/",
+    "schema/",
+    "docs/",
+    "LICENSES/",
+    "demo/examples/"
+  ],
+  "sideEffects": ["**/*.css"],
   "description": "Standalone, reusable visualization for Alloy instances and traces",
   "repository": {
     "type": "git",
-    "url": "https://github.com/nmacedo/alloy-a4f-visualizer.git"
+    "url": "https://github.com/haslab/alloy-a4f-visualizer.git"
   },
   "type": "module",
   "main": "src/index.js",
@@ -16,15 +25,22 @@
     "./style": "./src/cytoscapeStyle.js",
     "./interactions": "./src/graphInteractions.js",
     "./theme": "./src/themeModel.js",
-    "./visualizer.css": "./src/visualizer.css"
+    "./visualizer.css": "./src/visualizer.css",
+    "./src/visualizer.css": "./src/visualizer.css",
+    "./schema": "./schema/instance-trace.schema.json"
   },
   "scripts": {
     "test": "node --test test/*.test.js",
+    "test:browser": "playwright test",
     "test:projection": "node test/run-projection-ground-truth.mjs",
+    "test:package": "node test/package-smoke.mjs",
+    "check": "npm test && npm run test:package && npm run test:browser",
     "demo": "node demo/server.js"
   },
   "dependencies": {
-    "@fortawesome/fontawesome-free": "5.6.3",
-    "cytoscape": "^2.7.29"
+    "cytoscape": "^3.35.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.60.0"
   }
 }

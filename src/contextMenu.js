@@ -43,8 +43,8 @@ function item(label, control, action) {
 
 /** DOM translation of Alloy4Fun's right-click menu, with application globals replaced by callbacks. */
 export function createContextMenu({ container = document.body, theme, onProject, onResetProjection, onResetTheme, onLayout, onRefresh, canProject = () => true } = {}) {
-    const menu = document.createElement('div'); menu.id = 'optionsMenu'; menu.hidden = true
-    const cssmenu = document.createElement('div'); cssmenu.id = 'cssmenu'; menu.append(cssmenu); container.append(menu)
+    const menu = document.createElement('div'); menu.className = 'alloy-visualizer-menu'; menu.hidden = true
+    const cssmenu = document.createElement('div'); cssmenu.className = 'alloy-visualizer-menu-list'; menu.append(cssmenu); container.append(menu)
     let target = { kind: 'background', labels: ['general'] }
     const hide = () => { menu.hidden = true }
     const update = () => onRefresh && onRefresh()

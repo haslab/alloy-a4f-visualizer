@@ -1,19 +1,48 @@
-# alloy-a4f-visualizer
+# Alloy A4F Visualizer
 
-A standalone, reusable visualizer for Alloy instances and traces. It was
-originally extracted from Alloy4Fun, but the visualizer itself is an
-independent browser component: hosts provide Alloy instance data and optional
-preferences; the component owns graph rendering, layouts, themes, atom
-positions, trace-state navigation, and projection interaction.
+An interactive visualizer for Alloy instances and traces, originally developed
+for Alloy4Fun. It handles layouts, themes, atom positions, trace navigation and
+local projection, independently of any framework, database or Alloy server.
 
-It has no dependency on Meteor, MongoDB, Alloy4Fun services, or the Alloy
-solver API. Its input is Alloy instance data in the visualizer's documented
-`states`/`loop` envelope. API-response normalization is deliberately outside
-the current scope.
+## Try the demo
 
-## Instance and trace document
+Requires Node.js 22 or 24:
 
-An instance or trace has this common shape:
+```sh
+npm ci
+npm run demo
+```
+
+Open <http://localhost:4173> and choose an example or load your own JSON file.
+Right-click a node, edge or the canvas to edit its appearance and layout.
+
+## Use in an application
+
+Install from [GitHub](https://github.com/haslab/alloy-a4f-visualizer), using a
+specific tag or commit for reproducible builds. Import the component and its
+stylesheet:
+
+```js
+import { createVisualizer } from 'alloy-a4f-visualizer'
+import 'alloy-a4f-visualizer/visualizer.css'
+
+const visualizer = createVisualizer(document.getElementById('graph'))
+visualizer.setDocument(instanceOrTrace)
+
+// When removing the view:
+visualizer.destroy()
+```
+
+Mount into an attached element with its own parent container. The stylesheet
+provides the default canvas styling and local navigation icons. Your application
+supplies instances and optionally saves preferences.
+
+See the [API reference](docs/API.md) for sizing, dark/light appearance,
+preferences, methods and framework integration.
+
+## JSON format
+
+Both instances and traces have the same shape:
 
 ```json
 {
@@ -22,100 +51,46 @@ An instance or trace has this common shape:
 }
 ```
 
-`loop: -1` means a single instance and requires exactly one state. A
-non-negative loop value identifies a trace and points to its loop target.
-Each state's `types`, `sets`, and `rels` contain the Alloy instance data. The
-formal schema and examples are in [`schema/`](./schema/) and
-[`demo/examples/`](./demo/examples/). Optional solver metadata such as
-`bitwidth`, `maxseq`, `mintrace`, and `maxtrace` may be included and is ignored
-by graph rendering.
+- **Instance:** one state and `loop: -1`.
+- **Trace:** one or more states; `loop` is the index to return to after the last.
+- Each state contains types, subsets (`sets`) and relation tuples (`rels`).
 
-## Use as a component
-
-Install the package in a host project and mount it on a graph container:
-
-```js
-import { createVisualizer } from 'alloy-a4f-visualizer'
-
-const visualizer = createVisualizer(document.getElementById('graph'), {
-  preferences: savedPreferences,
-  appearance: 'dark', // 'light' is also supported
-  onPreferencesChange(preferences) {
-    persistPreferences(preferences)
-  }
-})
-
-visualizer.setDocument(instanceOrTrace)
-```
-
-Trace and projection controls are created and owned by the component; the host
-does not provide control-specific DOM slots. Hosts remain responsible for
-obtaining instance documents and persisting preferences. Call `destroy()` when
-the component is unmounted. `appearance` selects light or dark graph label and
-border colors; hosts should style the graph container background to match their
-own surface. The returned visualizer also exposes `setAppearance('light' |
-'dark')` for runtime changes.
-
-For compatibility with existing Alloy4Fun model themes, `preferences` and
-`onPreferencesChange` use the shape `{ sigSettings, relationSettings,
-generalSettings, nodePositions }`. Projection is handled locally but is not
-included in persisted preferences yet; derived projected states are never
-persisted. See the exported controller and state APIs in [`src/index.js`](./src/index.js).
-
-## Standalone demo
-
-```sh
-npm install
-npm run demo
-```
-
-Open <http://localhost:4173>, paste or select a JSON document, and load it to
-inspect the instance or trace.
+See the [examples](demo/examples/), [JSON schema](schema/instance-trace.schema.json)
+and [format details](docs/API.md#instance-format).
 
 ## Development
 
 ```sh
-npm test
+npm ci
+npm run check
 ```
 
-## Projection ground-truth integration test
+This runs core, package and browser checks. Browser tests use installed Google
+Chrome by default. Alternatively, run `npx playwright install chromium` and
+`E2E_CHANNEL=chromium npm run check`.
 
-The visualizer's local projection can be compared with the Alloy library's
-projection through the generic Alloy Web API. Start the API, then run:
+### Projection integration test
+
+The optional projection test uses the separate
+[Alloy Web API](https://github.com/haslab/alloy-web-api), a Java/Quarkus service
+that exposes the Alloy library over HTTP. It obtains instances through
+`/getInstances` and compares this visualizer's local projection with Alloy's
+reference result from `/getProjection`.
+
+Follow the API project's README to build and start it, then run:
 
 ```sh
 ALLOY_WEB_API_URL=http://localhost:4001 npm run test:projection
 ```
 
-The test creates a fresh solver session with `/getInstances`, passes that
-exact returned instance to the local projector, requests the corresponding
-ground-truth result from `/getProjection`, and compares the normalized
-instance structures. It iterates over every atom in each non-built-in
-signature in the fixture, covering projection on both the left and right
-sides of relations. It needs no API-specific metadata added to the source
-instance. With `ALLOY_WEB_API_URL` unset, this external integration test is
-skipped by `npm test`; set it to a reachable API URL to run it.
+The API is only needed for this integration test, not for the demo or rendering.
+Without `ALLOY_WEB_API_URL`, the ordinary test suite skips this comparison.
 
-## Third-party attribution
+## Credits and licensing
 
-The navigation controls use the Font Awesome Free solid webfont, version
-5.6.3, by Fonticons, Inc. ([fontawesome.com](https://fontawesome.com)). The
-font is distributed under the SIL Open Font License 1.1; its license and
-required attribution are included in [`LICENSES/FontAwesome-LICENSE.txt`](./LICENSES/FontAwesome-LICENSE.txt).
-The webfont is installed from the exact `@fortawesome/fontawesome-free@5.6.3`
-dependency and bundled locally by consuming applications; no Font Awesome CDN
-or second Font Awesome version is required.
+Source code is licensed under the [MIT License](LICENSE), preserving the
+original Alloy4Fun copyright notice.
 
-## Repository and A4F integration
-
-The source repository is
-[`nmacedo/alloy-a4f-visualizer`](https://github.com/nmacedo/alloy-a4f-visualizer).
-The initial repository commit is published. Create a versioned release tag
-after projection behavior and its regression tests meet the A4F 2.0 criteria.
-
-While both checkouts are on the same development machine, Alloy4Fun can depend
-on this package through a local `file:` dependency during local development.
-Once a versioned release tag exists, switch A4F's dependency to the repository
-URL and pin it to that tag (rather than a moving branch) before building or
-deploying A4F. Keep the package name `alloy-a4f-visualizer` consistent in both
-projects.
+Rendering uses [Cytoscape.js](https://js.cytoscape.org/). Navigation uses the
+unmodified Font Awesome Free 5.6.3 solid font by Fonticons, Inc., bundled locally
+under SIL OFL 1.1; see [the third-party notice](LICENSES/FontAwesome-LICENSE.txt).
