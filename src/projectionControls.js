@@ -1,3 +1,5 @@
+import { iconMarkup } from './icons.js'
+
 /**
  * Per-type projection navigation. Each projected type owns an independent
  * focused-atom control; the controller remains the source of assignments.
@@ -29,7 +31,7 @@ export function createProjectionControls(container, { controller, atomsForType }
             previous.type = 'button'
             previous.className = 'cbutton projection-atom-button'
             previous.setAttribute('aria-label', `Previous ${type} atom`)
-            previous.innerHTML = '<i class="cbutton__icon fas fa-fw fa-step-backward" aria-hidden="true"></i>'
+            previous.innerHTML = iconMarkup('step-backward')
             previous.disabled = index <= 0
             previous.addEventListener('click', () => controller.selectPrevious(type, atomsForType(type)))
 
@@ -42,7 +44,7 @@ export function createProjectionControls(container, { controller, atomsForType }
             next.type = 'button'
             next.className = 'cbutton projection-atom-button'
             next.setAttribute('aria-label', `Next ${type} atom`)
-            next.innerHTML = '<i class="cbutton__icon fas fa-fw fa-step-forward" aria-hidden="true"></i>'
+            next.innerHTML = iconMarkup('step-forward')
             next.disabled = index < 0 || index >= atoms.length - 1
             next.addEventListener('click', () => controller.selectNext(type, atomsForType(type)))
 

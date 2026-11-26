@@ -58,6 +58,9 @@ Both instances and traces have the same shape:
 See the [examples](demo/examples/), [JSON schema](schema/instance-trace.schema.json)
 and [format details](docs/API.md#instance-format).
 
+The demo includes higher-arity instance/trace examples for ternary and quaternary
+labels, parallel edges, self-loops and subsets with multiple parents.
+
 ## Development
 
 ```sh
@@ -92,5 +95,5 @@ Source code is licensed under the [MIT License](LICENSE), preserving the
 original Alloy4Fun copyright notice.
 
 Rendering uses [Cytoscape.js](https://js.cytoscape.org/). Navigation uses the
-unmodified Font Awesome Free 5.6.3 solid font by Fonticons, Inc., bundled locally
-under SIL OFL 1.1; see [the third-party notice](LICENSES/FontAwesome-LICENSE.txt).
+official Font Awesome Free 5.6.3 SVG icons by Fonticons, Inc., bundled locally
+under CC BY 4.0; see [the third-party notice](LICENSES/FontAwesome-NOTICE.md).

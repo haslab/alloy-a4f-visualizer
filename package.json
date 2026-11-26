@@ -10,7 +10,9 @@
     "LICENSES/",
     "demo/examples/"
   ],
-  "sideEffects": ["**/*.css"],
+  "sideEffects": [
+    "**/*.css"
+  ],
   "description": "Standalone, reusable visualization for Alloy instances and traces",
   "repository": {
     "type": "git",
@@ -41,6 +43,7 @@
     "cytoscape": "^3.35.0"
   },
   "devDependencies": {
+    "@fortawesome/free-solid-svg-icons": "5.6.3",
     "@playwright/test": "^1.60.0"
   }
 }

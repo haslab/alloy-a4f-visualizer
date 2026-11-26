@@ -2,7 +2,7 @@
 
 ## Mount and load
 
-Use a bundler that resolves npm imports, CSS and relative font URLs. The graph
+Use a bundler that resolves npm imports and CSS. The graph
 needs an attached parent with a nonzero size. The component stylesheet supplies
 a 400px default canvas height; override it in the host if needed.
 
@@ -24,8 +24,8 @@ const visualizer = createVisualizer(document.getElementById('graph'), {
 visualizer.setDocument(instanceOrTrace)
 ```
 
-Neither Font Awesome CSS nor a remote font service is needed: the stylesheet
-loads the bundled navigation font. Give each visualizer its own parent surface.
+Navigation uses locally bundled official inline SVG icons. No Font Awesome CSS,
+font assets or remote service is needed. Give each visualizer its own parent surface.
 Mount only in the browser, and call `destroy()` before removing or reusing its
 container. Imports are safe on the server, but mounting requires the DOM.
 

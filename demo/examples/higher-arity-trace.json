@@ -1,0 +1,31 @@
+{
+  "states": [
+    {
+      "types": [
+        {"name": "Person", "parents": ["univ"], "atoms": ["Person$0"]},
+        {"name": "Room", "parents": ["univ"], "atoms": ["Room$0", "Room$1"]},
+        {"name": "Day", "parents": ["univ"], "atoms": ["Day$0", "Day$1"]},
+        {"name": "Item", "parents": ["univ"], "atoms": ["Item$0"]}
+      ],
+      "sets": [],
+      "rels": [
+        {"name": "visits", "arity": 3, "types": ["Person", "Day", "Room"], "atoms": [["Person$0", "Day$0", "Room$0"]]},
+        {"name": "books", "arity": 4, "types": ["Person", "Room", "Day", "Item"], "atoms": [["Person$0", "Room$0", "Day$0", "Item$0"]]}
+      ]
+    },
+    {
+      "types": [
+        {"name": "Person", "parents": ["univ"], "atoms": ["Person$0"]},
+        {"name": "Room", "parents": ["univ"], "atoms": ["Room$0", "Room$1"]},
+        {"name": "Day", "parents": ["univ"], "atoms": ["Day$0", "Day$1"]},
+        {"name": "Item", "parents": ["univ"], "atoms": ["Item$0"]}
+      ],
+      "sets": [],
+      "rels": [
+        {"name": "visits", "arity": 3, "types": ["Person", "Day", "Room"], "atoms": [["Person$0", "Day$1", "Room$0"]]},
+        {"name": "books", "arity": 4, "types": ["Person", "Room", "Day", "Item"], "atoms": [["Person$0", "Room$1", "Day$1", "Item$0"]]}
+      ]
+    }
+  ],
+  "loop": 0
+}

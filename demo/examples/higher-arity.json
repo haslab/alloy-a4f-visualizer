@@ -1,0 +1,19 @@
+{
+  "states": [{
+    "types": [
+      {"name": "Person", "parents": ["univ"], "atoms": ["Person$0", "Person$1"]},
+      {"name": "Room", "parents": ["univ"], "atoms": ["Room$0", "Room$1"]},
+      {"name": "Day", "parents": ["univ"], "atoms": ["Day$0", "Day$1"]},
+      {"name": "Item", "parents": ["univ"], "atoms": ["Item$0"]}
+    ],
+    "sets": [{"name": "Chosen", "parents": ["Person", "Room"], "atoms": ["Person$0", "Room$1"]}],
+    "rels": [
+      {"name": "knows", "arity": 2, "types": ["Person", "Person"], "atoms": [["Person$0", "Person$1"]]},
+      {"name": "visits", "arity": 3, "types": ["Person", "Day", "Room"], "atoms": [["Person$0", "Day$0", "Room$0"], ["Person$0", "Day$1", "Room$0"], ["Person$1", "Day$0", "Room$1"]]},
+      {"name": "books", "arity": 4, "types": ["Person", "Room", "Day", "Item"], "atoms": [["Person$0", "Room$0", "Day$0", "Item$0"], ["Person$0", "Room$1", "Day$1", "Item$0"]]},
+      {"name": "between", "arity": 3, "types": ["Person", "Room", "Person"], "atoms": [["Person$0", "Room$1", "Person$0"]]},
+      {"name": "empty", "arity": 4, "types": ["Person", "Room", "Day", "Item"], "atoms": []}
+    ]
+  }],
+  "loop": -1
+}

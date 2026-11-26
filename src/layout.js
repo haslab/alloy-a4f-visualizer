@@ -8,7 +8,10 @@ function clonePosition(position) {
 export const layouts = {
     // Cytoscape 3 scales final positions by spacingFactor, after overlap
     // avoidance. The old 0.1 value compressed even correctly spaced nodes.
-    breadthfirst: { name: 'breadthfirst', avoidOverlap: true, maximalAdjustments: 1, padding: 10, directed: true, spacingFactor: 1 },
+    // Do not enable the deprecated maximal/DAG adjustment: Alloy relations can
+    // contain cycles and self-loops. Cytoscape 3 leaves null depth entries during
+    // that adjustment and can throw while sorting them before cleanup.
+    breadthfirst: { name: 'breadthfirst', avoidOverlap: true, padding: 10, directed: true, spacingFactor: 1 },
     cocentric: {
         name: 'concentric', fit: true, padding: 10, startAngle: 3 / 2 * Math.PI,
         clockwise: true, equidistant: false, minNodeSpacing: 10, avoidOverlap: true,

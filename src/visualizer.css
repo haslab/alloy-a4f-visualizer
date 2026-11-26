@@ -1,28 +1,10 @@
-/* Font Awesome Free 5.6.3 by Fonticons, Inc.; SIL OFL 1.1.
-   Unmodified local font; attribution and license in LICENSES/FontAwesome-LICENSE.txt. */
-@font-face {
-    font-family: 'Alloy Visualizer Icons';
-    font-style: normal;
-    font-weight: 900;
-    font-display: block;
-    src: url('./fonts/fa-solid-900.woff2') format('woff2');
-}
-
-.alloy-visualizer-controls .fas {
+.alloy-visualizer-controls .alloy-visualizer-icon {
     display: inline-block;
-    font-family: 'Alloy Visualizer Icons';
-    font-style: normal;
-    font-weight: 900;
-    text-rendering: auto;
-    -webkit-font-smoothing: antialiased;
+    width: 1.28571429em;
+    height: 1em;
+    vertical-align: -.125em;
+    fill: currentColor;
 }
-
-.alloy-visualizer-controls .fa-fw { width: 1.28571429em; text-align: center; }
-.alloy-visualizer-controls .fa-arrow-left::before { content: '\f060'; }
-.alloy-visualizer-controls .fa-arrow-right::before { content: '\f061'; }
-.alloy-visualizer-controls .fa-undo::before { content: '\f0e2'; }
-.alloy-visualizer-controls .fa-step-backward::before { content: '\f048'; }
-.alloy-visualizer-controls .fa-step-forward::before { content: '\f051'; }
 
 /* Host layout rules must not override the component's hidden state. */
 .alloy-trace-controls[hidden], .alloy-projection-controls[hidden],

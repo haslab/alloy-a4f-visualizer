@@ -1,13 +1,18 @@
-# Bundled navigation font
+# Navigation icons
 
-Font Awesome Free 5.6.3, by Fonticons, Inc. (<https://fontawesome.com>).
+Font Awesome Free 5.6.3 by Fonticons, Inc. (<https://fontawesome.com>).
+Official solid SVG paths are reproduced without modification from the pinned
+`@fortawesome/free-solid-svg-icons@5.6.3` development dependency.
 
-The unmodified `src/fonts/fa-solid-900.woff2` was copied from
-`@fortawesome/fontawesome-free@5.6.3/webfonts/fa-solid-900.woff2`.
-It is distributed under SIL Open Font License 1.1; see
-[the upstream license notice](FontAwesome-LICENSE.txt).
+The icons are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
+The upstream package code is MIT licensed; see [the upstream license notice](FontAwesome-LICENSE.txt).
+The font license in that notice does not apply: no fonts are distributed here.
 
-SHA-256: `3135d8dcdc19a876e23e693a53d9fc3ad45bb0b9ba4abb34e118e54bdec71c6b`.
+`src/iconDefinitions.js` contains only the five required icons. To regenerate,
+run `node scripts/generate-icons.cjs` from the project root. Review and commit
+the generated definitions alongside the source script. Use `--check` to verify
+that regeneration is unnecessary without writing any files.
+The regular test suite checks the definitions against the pinned upstream icons.
 
-The component stylesheet declares a private CSS family alias for this font.
-Hosts do not need Font Awesome CSS, an npm dependency, or network access to a CDN.
+Controls render inline SVG with `currentColor`. No icon CSS, font loading,
+runtime Font Awesome dependency, CDN or host icon setup is required.

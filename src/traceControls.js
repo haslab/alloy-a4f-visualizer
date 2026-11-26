@@ -1,3 +1,5 @@
+import { iconMarkup } from './icons.js'
+
 /**
  * Renders navigation controls for the states of one Alloy trace.
  *
@@ -16,17 +18,12 @@ export function createTraceControls(container, {
     previous.type = 'button'
     previous.className = 'cbutton alloy-trace-previous'
     previous.setAttribute('aria-label', previousLabel)
-    previous.innerHTML = '<i class="cbutton__icon fas fa-fw fa-arrow-left" aria-hidden="true"></i>'
+    previous.innerHTML = iconMarkup('arrow-left')
 
     const next = document.createElement('button')
     next.type = 'button'
     next.className = 'cbutton alloy-trace-next'
     next.setAttribute('aria-label', nextLabel)
-
-    const nextIcon = document.createElement('i')
-    nextIcon.className = 'cbutton__icon fas fa-fw fa-arrow-right'
-    nextIcon.setAttribute('aria-hidden', 'true')
-    next.appendChild(nextIcon)
 
     const current = document.createElement('div')
     current.className = 'alloy-trace-current'
@@ -43,7 +40,7 @@ export function createTraceControls(container, {
         next.hidden = !hasState
         current.hidden = !hasState
         current.textContent = hasState ? index : ''
-        nextIcon.className = `cbutton__icon fas fa-fw ${controller.hasNext() && index === controller.length() - 1 ? 'fa-undo' : 'fa-arrow-right'}`
+        next.innerHTML = iconMarkup(controller.hasNext() && index === controller.length() - 1 ? 'undo' : 'arrow-right')
     }
 
     function navigate(action) {

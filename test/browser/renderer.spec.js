@@ -53,22 +53,51 @@ test('the actual demo lays out the single instance without overlap and applies t
     expect(await page.evaluate(() => document.getElementById('graph')._cyreg.cy.getElementById('Room$0').style('background-color'))).toBe('rgb(255,65,54)')
 })
 
-test('demo navigation icons load from the component without host Font Awesome CSS', async ({ page }) => {
+test('demo navigation uses official inline SVGs without icon CSS or font requests', async ({ page }) => {
     const fontRequests = []
-    page.on('request', request => { if (request.url().includes('fortawesome')) fontRequests.push(request.url()) })
+    page.on('request', request => { if (request.url().includes('fortawesome') || request.url().includes('.woff2')) fontRequests.push(request.url()) })
     await page.goto('/')
     await page.selectOption('#example', 'trace.json')
     await expect(page.locator('.alloy-trace-controls')).toBeVisible()
-    const font = await page.evaluate(async () => {
-        const faces = await document.fonts.load('900 48px "Alloy Visualizer Icons"')
-        return { count: faces.length, loaded: faces.every(face => face.status === 'loaded') }
-    })
-    expect(font).toEqual({ count: 1, loaded: true })
-    const iconStyles = await page.locator('.alloy-visualizer-controls .fas').evaluateAll(icons => icons.map(icon => getComputedStyle(icon).fontStyle))
-    expect(iconStyles.length).toBeGreaterThan(0)
-    expect(iconStyles.every(style => style === 'normal')).toBe(true)
+    const previous = page.getByRole('button', { name: 'Previous trace state', exact: true })
+    await expect(previous.locator('svg')).toHaveAttribute('data-icon', 'arrow-left')
+    const next = page.getByRole('button', { name: 'Next trace state', exact: true })
+    await expect(next.locator('svg')).toHaveAttribute('data-icon', 'arrow-right')
+    const size = await next.locator('svg').boundingBox()
+    expect(size.height).toBe(48)
+    expect(size.width).toBeGreaterThan(48)
+    await next.click()
+    await next.click()
+    await expect(next.locator('svg')).toHaveAttribute('data-icon', 'undo')
+    await expect(next.locator('svg path')).toHaveAttribute('d', /^M/)
     expect(fontRequests).toEqual([])
     await expect(page.getByRole('button', { name: 'Next trace state', exact: true })).toBeEnabled()
+})
+
+test('higher-arity labels render distinctly, including parallel edges and a self-loop', async ({ page }) => {
+    await load(page, 'higher-arity.json')
+    const labels = await page.evaluate(() => window.testGraph.edges().map(edge => edge.style('label')))
+    expect(labels).toEqual([
+        'knows', 'visits [Day$0]', 'visits [Day$1]', 'visits [Day$0]',
+        'books [Room$0,Day$0]', 'books [Room$1,Day$1]', 'between [Room$1]'
+    ])
+    await expectFitted(page)
+})
+
+test('higher-arity trace labels update and loop without moving the viewport', async ({ page }) => {
+    await load(page, 'higher-arity-trace.json')
+    const viewport = () => page.evaluate(() => ({ zoom: window.testGraph.zoom(), pan: window.testGraph.pan() }))
+    const before = await viewport()
+    const labels = () => page.evaluate(() => window.testGraph.edges().map(edge => edge.style('label')))
+    expect(await labels()).toEqual(['visits [Day$0]', 'books [Room$0,Day$0]'])
+    await page.getByRole('button', { name: 'Next trace state', exact: true }).click()
+    await settle(page)
+    expect(await labels()).toEqual(['visits [Day$1]', 'books [Room$1,Day$1]'])
+    expect(await viewport()).toEqual(before)
+    await page.getByRole('button', { name: 'Next trace state', exact: true }).click()
+    await settle(page)
+    expect(await labels()).toEqual(['visits [Day$0]', 'books [Room$0,Day$0]'])
+    expect(await viewport()).toEqual(before)
 })
 
 test('Cytoscape 3 delivers node/edge/background interactions and every existing layout', async ({ page }) => {
